@@ -10,10 +10,10 @@
 
 // #define LORAWAN_DEBUGGING
 // #ifdef LORAWAN_DEBUGGING
-//   #define debug(MSG, ...)  printf("[Simple-LoRaWAN] " MSG "\r\n", \
-//                               ## __VA_ARGS__)
+  #define debug(MSG, ...)  printf("[Simple-LoRaWAN] " MSG "\r\n", \
+                              ## __VA_ARGS__)
 // #else
-#define debug(msg, ...) ((void)0)
+// #define debug(msg, ...) ((void)0)
 // #endif
 
 /*
@@ -39,10 +39,14 @@ namespace SimpleLoRaWAN
 class Node
 {
 public:
-    Node(bool wait_until_connected = true);
-    Node(LoRaWANKeys keys, bool wait_until_connected = true);
-    Node(LoRaWANKeys keys, Pinmapping pins, bool wait_until_connected = true);
+    Node(events::EventQueue* queue);
+    Node(events::EventQueue* queue, Pinmapping pins);
     virtual ~Node();
+
+    void connect(bool wait_until_connected = false);
+    void connect(LoRaWANKeys keys, bool wait_until_connected = false);
+    bool isConnected();
+
     // void send(char* data, int size, bool acknowledge = false);
     // void send(unsigned char port, char* data, int size, bool acknowledge = false);
     // void send(uint8_t* data, int size, bool acknowledge = false);
@@ -70,19 +74,15 @@ private:
     bool connected;
 
     void initialize();
-    void connect();
     void connect(lorawan_connect_t &params);
 
     void lora_event_handler(lorawan_event_t event);
-    void processEvents();
 
     // Allows for easy event handler registration
     mbed::Callback<void()> onConnected;
     mbed::Callback<void()> onDisconnected;
     mbed::Callback<void()> onTransmitted;
     mbed::Callback<void()> onTransmissionError;
-
-    Thread processThread;
 
     void send_message();   // TEMP DUMMY !!!
     void receive_message();   // TEMP DUMMY !!!

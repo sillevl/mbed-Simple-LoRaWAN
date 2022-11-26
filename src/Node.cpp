@@ -9,19 +9,10 @@ using namespace events;
 
 namespace SimpleLoRaWAN
 {
-
-  Node::Node(bool wait_until_connected):
+  Node::Node(events::EventQueue* queue):
   Node (
-    {
-      MBED_CONF_LORA_DEVICE_EUI,
-      MBED_CONF_LORA_APPLICATION_EUI,
-      MBED_CONF_LORA_APPLICATION_KEY
-    }, wait_until_connected)
-  {  }
-
-  Node::Node(LoRaWANKeys keys, bool wait_until_connected): 
-  Node (
-    keys, { 
+    queue,
+    { 
       MBED_CONF_SX1276_LORA_DRIVER_SPI_MOSI,
       MBED_CONF_SX1276_LORA_DRIVER_SPI_MISO,
       MBED_CONF_SX1276_LORA_DRIVER_SPI_SCLK,
@@ -29,10 +20,10 @@ namespace SimpleLoRaWAN
       MBED_CONF_SX1276_LORA_DRIVER_RESET,
       MBED_CONF_SX1276_LORA_DRIVER_DIO0,
       MBED_CONF_SX1276_LORA_DRIVER_DIO1 
-    }, wait_until_connected)
+    })
   {  }
 
-  Node::Node(LoRaWANKeys keys, Pinmapping pins, bool wait_until_connected):
+  Node::Node(events::EventQueue* queue, Pinmapping pins):
     radio(
       pins.mosi,
       pins.miso,
@@ -42,11 +33,22 @@ namespace SimpleLoRaWAN
       pins.dio0,
       pins.dio1,
       NC, NC, NC, NC, NC, NC, NC, NC, NC, NC, NC),
-    ev_queue(MAX_NUMBER_OF_EVENTS *EVENTS_EVENT_SIZE),
     lorawan(radio)
   {
-    processThread.start(mbed::callback(this, &Node::processEvents));
     connected = false;
+    ev_queue.chain(queue);
+  }
+
+  void Node::connect(bool wait_until_connected) {
+    LoRaWANKeys keys = {
+      MBED_CONF_LORA_DEVICE_EUI,
+      MBED_CONF_LORA_APPLICATION_EUI,
+      MBED_CONF_LORA_APPLICATION_KEY
+    };
+    connect(keys, wait_until_connected);
+  }
+
+  void Node::connect(LoRaWANKeys keys, bool wait_until_connected) {
     lorawan_connect_t connect_params = { LORAWAN_CONNECTION_OTAA, {
       keys.devEui,
       keys.appEui,
@@ -55,11 +57,16 @@ namespace SimpleLoRaWAN
     } };
     initialize();
     connect(connect_params);
+
     if(wait_until_connected) {
       while(!connected) {
-        ThisThread::sleep_for(100ms);
+        ev_queue.dispatch_once();
       }
     }
+  }
+
+  bool Node::isConnected() {
+    return connected;
   }
 
   Node::~Node(){}
@@ -197,12 +204,6 @@ namespace SimpleLoRaWAN
         default:
             debug("Unknown event happened");
     }
-}
-
-void Node::processEvents()
-{
-  // make your event queue dispatching events forever
-  ev_queue.dispatch_forever();
 }
 
 void Node::send_message(){}

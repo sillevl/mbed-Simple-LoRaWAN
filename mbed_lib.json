@@ -1,5 +1,6 @@
 {
     "name": "simple-lorawan",
+    "requires": ["lora", "mbedtls", "sx1276-lora-driver"],
     "config": {
         "main_stack_size":     { "value": 4096 }
     },
