@@ -8,26 +8,6 @@
 #include "rtos.h"
 #include "simple-lorawan-config.h"
 
-// #define LORAWAN_DEBUGGING
-// #ifdef LORAWAN_DEBUGGING
-  #define debug(MSG, ...)  printf("[Simple-LoRaWAN] " MSG "\r\n", \
-                              ## __VA_ARGS__)
-// #else
-// #define debug(msg, ...) ((void)0)
-// #endif
-
-/*
- * Sets up an application dependent transmission timer in ms. Used only when Duty Cycling is off for testing
- */
-#define TX_TIMER                        10000
-
-/**
- * Maximum number of events for the event queue.
- * 10 is the safe number for the stack events, however, if application
- * also uses the queue for whatever purposes, this number should be increased.
- */
-#define MAX_NUMBER_OF_EVENTS            10
-
 /**
  * Maximum number of retries for CONFIRMED messages before giving up
  */

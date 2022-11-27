@@ -3,6 +3,8 @@
 #include "lorawan/system/lorawan_data_structures.h"
 #include "lorawan/LoRaRadio.h"
 #include <stdio.h>
+#include "mbed-trace/mbed_trace.h"
+#define TRACE_GROUP "SIMPLE-LORAWAN"
 
 using namespace std::literals::chrono_literals;
 using namespace events;
@@ -75,11 +77,11 @@ namespace SimpleLoRaWAN
   {
     // Initialize LoRaWAN stack
     if (lorawan.initialize(&ev_queue) != LORAWAN_STATUS_OK) {
-        debug("LoRa initialization failed!");
+        tr_debug("LoRa initialization failed!");
         // return -1;
     }
 
-    debug("Mbed LoRaWANStack initialized");
+    tr_debug("Mbed LoRaWANStack initialized");
 
     // prepare application callbacks
     callbacks.events = mbed::callback(this, &Node::lora_event_handler);
@@ -88,20 +90,20 @@ namespace SimpleLoRaWAN
     // Set number of retries in case of CONFIRMED messages
     if (lorawan.set_confirmed_msg_retries(CONFIRMED_MSG_RETRY_COUNTER)
             != LORAWAN_STATUS_OK) {
-        debug("set_confirmed_msg_retries failed!");
+        tr_debug("set_confirmed_msg_retries failed!");
         // return -1;
     }
 
-    debug("CONFIRMED message retries : %d",
+    tr_debug("CONFIRMED message retries : %d",
            CONFIRMED_MSG_RETRY_COUNTER);
 
     // Enable adaptive data rate
     if (lorawan.enable_adaptive_datarate() != LORAWAN_STATUS_OK) {
-        debug("enable_adaptive_datarate failed!");
+        tr_debug("enable_adaptive_datarate failed!");
         // return -1;
     }
 
-    debug("Adaptive data  rate (ADR) - Enabled");
+    tr_debug("Adaptive data  rate (ADR) - Enabled");
   }
 
   void Node::connect(lorawan_connect_t &params)
@@ -114,11 +116,11 @@ namespace SimpleLoRaWAN
     if (retcode == LORAWAN_STATUS_OK ||
             retcode == LORAWAN_STATUS_CONNECT_IN_PROGRESS) {
     } else {
-        debug("Connection error, code = %d", retcode);
+        tr_debug("Connection error, code = %d", retcode);
         // return -1;
     }
 
-    debug("Connection - In Progress ...");
+    tr_debug("Connection - In Progress ...");
   }
 
   void Node::send(uint8_t* data, int size, unsigned char port, bool acknowledge)
@@ -129,8 +131,8 @@ namespace SimpleLoRaWAN
     retcode = lorawan.send(port, data, size, options);
 
     if (retcode < 0) {
-        retcode == LORAWAN_STATUS_WOULD_BLOCK ? debug("send - WOULD BLOCK")
-        : debug("send() - Error code %d", retcode);
+        retcode == LORAWAN_STATUS_WOULD_BLOCK ? tr_debug("send - WOULD BLOCK")
+        : tr_debug("send() - Error code %d", retcode);
 
         if (retcode == LORAWAN_STATUS_WOULD_BLOCK) {
             //retry in 3 seconds
@@ -139,14 +141,14 @@ namespace SimpleLoRaWAN
         return;
     }
 
-    debug("%d bytes scheduled for transmission", retcode);
+    tr_debug("%d bytes scheduled for transmission", retcode);
     memset(tx_buffer, 0, sizeof(tx_buffer));
   }
 
   void Node::enableAdaptiveDataRate()
   {
     if (lorawan.enable_adaptive_datarate() != LORAWAN_STATUS_OK) {
-        debug("\r\n enable_adaptive_datarate failed! \r\n");
+        tr_debug("\r\n enable_adaptive_datarate failed! \r\n");
     }
   }
 
@@ -155,7 +157,7 @@ namespace SimpleLoRaWAN
     switch (event) {
         case CONNECTED:
             connected = true;
-            debug("Connection - Successful");
+            tr_debug("Connection - Successful");
             if (onConnected) {
               onConnected();
             }
@@ -163,13 +165,13 @@ namespace SimpleLoRaWAN
         case DISCONNECTED:
             connected = false;
             ev_queue.break_dispatch();
-            debug("Disconnected Successfully");
+            tr_debug("Disconnected Successfully");
             if (onDisconnected) {
               onDisconnected();
             }
             break;
         case TX_DONE:
-            debug("Message Sent to Network Server");
+            tr_debug("Message Sent to Network Server");
             send_message();
             if (onTransmitted) {
               onTransmitted();
@@ -179,7 +181,7 @@ namespace SimpleLoRaWAN
         case TX_ERROR:
         case TX_CRYPTO_ERROR:
         case TX_SCHEDULING_ERROR:
-            debug("Transmission Error - EventCode = %d", event);
+            tr_debug("Transmission Error - EventCode = %d", event);
             if (onTransmissionError) {
               onTransmissionError();
             }
@@ -187,22 +189,22 @@ namespace SimpleLoRaWAN
             send_message();
             break;
         case RX_DONE:
-            debug("Received message from Network Server");
+            tr_debug("Received message from Network Server");
             receive_message();
             break;
         case RX_TIMEOUT:
         case RX_ERROR:
-            debug("Error in reception - Code = %d", event);
+            tr_debug("Error in reception - Code = %d", event);
             break;
         case JOIN_FAILURE:
-            debug("OTAA Failed - Check Keys");
+            tr_debug("OTAA Failed - Check Keys");
             break;
         case UPLINK_REQUIRED:
-            debug("Uplink required by NS");
+            tr_debug("Uplink required by NS");
             send_message();
             break;
         default:
-            debug("Unknown event happened");
+            tr_debug("Unknown event happened");
     }
 }
 
