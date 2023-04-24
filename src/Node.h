@@ -56,6 +56,7 @@ public:
     void on_transmission_error(mbed::Callback<void()> cb);
 
     void enableAdaptiveDataRate();
+    void disableAdaptiveDataRate();
 
 private:
 

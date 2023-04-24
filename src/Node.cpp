@@ -143,6 +143,13 @@ namespace SimpleLoRaWAN
     }
   }
 
+  void Node::disableAdaptiveDataRate()
+  {
+    if (lorawan.disable_adaptive_datarate() != LORAWAN_STATUS_OK) {
+        debug("\r\n disable_adaptive_datarate failed! \r\n");
+    }
+  }
+
   void Node::lora_event_handler(lorawan_event_t event)
   {
     switch (event) {
