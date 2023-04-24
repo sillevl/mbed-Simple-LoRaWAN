@@ -57,6 +57,7 @@ public:
 
     void enableAdaptiveDataRate();
     void disableAdaptiveDataRate();
+    void setDataRate(uint8_t data_rate);
 
 private:
 
