@@ -151,9 +151,10 @@ namespace SimpleLoRaWAN
   }
 
   void Node::setDataRate(uint8_t data_rate) {
-    if (lorawan.set_datarate(data_rate) = LORAWAN_STATUS_OK) {
+    lorawan_status_t result = lorawan.set_datarate(data_rate);
+    if (result == LORAWAN_STATUS_OK) {
         debug("\r\n set_datarate to %d\r\n", data_rate);
-    } else if (lorawan.set_datarate(data_rate) = LORAWAN_STATUS_PARAMETER_INVALID) {
+    } else if (result == LORAWAN_STATUS_PARAMETER_INVALID) {
         debug("\r\n set_datarate failed: ADR is enabled or invalid data rate is given \r\n");
     } else {
         debug("\r\n set_datarate failed: system is not initialized with initialize() \r\n");
