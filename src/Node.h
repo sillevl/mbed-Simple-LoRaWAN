@@ -56,6 +56,8 @@ public:
     void on_transmission_error(mbed::Callback<void()> cb);
 
     void enableAdaptiveDataRate();
+    void disableAdaptiveDataRate();
+    void setDataRate(uint8_t data_rate);
 
 private:
 
