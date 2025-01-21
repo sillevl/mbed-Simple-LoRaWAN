@@ -4,6 +4,7 @@
 #include "lorawan/LoRaRadio.h"
 #include <stdio.h>
 #include "mbed-trace/mbed_trace.h"
+#include "pinmap.h"
 #define TRACE_GROUP "SIMPLE-LORAWAN"
 
 using namespace std::literals::chrono_literals;
@@ -39,6 +40,7 @@ namespace SimpleLoRaWAN
   {
     connected = false;
     ev_queue.chain(queue);
+    pin_mode(pins.miso, PullUp);
   }
 
   void Node::connect(bool wait_until_connected) {
