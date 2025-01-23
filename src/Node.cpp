@@ -45,11 +45,9 @@ namespace SimpleLoRaWAN
     mosi_pullup = pins.mosi;
     pin_mode(pins.miso, PullUp);
 
-    // PinMap PinMap_SPI_SCLK
     const PinMap* map = PinMap_SPI_SCLK;
     int function = pinmap_find_function(pins.clk, map);
-    // pin_function(pins.clk, function);
-    // pin_function(pins.clk, STM_PIN_DATA(STM_MODE_AF_PP, GPIO_NOPULL, GPIO_AF5_SPI1));
+    pin_function(pins.clk, function);
   }
 
   void Node::connect(bool wait_until_connected) {
