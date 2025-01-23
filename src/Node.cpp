@@ -142,13 +142,13 @@ namespace SimpleLoRaWAN
     retcode = lorawan.send(port, data, size, options);
 
     if (retcode < 0) {
-        retcode == LORAWAN_STATUS_WOULD_BLOCK ? tr_debug("send - WOULD BLOCK")
-        : tr_debug("send() - Error code %d", retcode);
+        // retcode == LORAWAN_STATUS_WOULD_BLOCK ? tr_debug("send - WOULD BLOCK")
+        // : tr_debug("send() - Error code %d", retcode);
 
-        if (retcode == LORAWAN_STATUS_WOULD_BLOCK) {
-            //retry in 3 seconds
-            ev_queue.call_in(3s, mbed::callback(this, &Node::send_message));
-        }
+        // if (retcode == LORAWAN_STATUS_WOULD_BLOCK) {
+        //     //retry in 3 seconds
+        //     ev_queue.call_in(3s, mbed::callback(this, &Node::send_message));
+        // }
         return;
     }
 
@@ -190,10 +190,16 @@ namespace SimpleLoRaWAN
             }
             break;
         case TX_TIMEOUT:
+          tr_debug("Transmission Timeout");
+          break;
         case TX_ERROR:
+          tr_debug("Transmission Error");
+          break;
         case TX_CRYPTO_ERROR:
+          tr_debug("Transmission Crypto Error");
+          break;
         case TX_SCHEDULING_ERROR:
-            tr_debug("Transmission Error - EventCode = %d", event);
+            tr_debug("Transmission Error - Scheduling");
             if (onTransmissionError) {
               onTransmissionError();
             }
@@ -205,6 +211,8 @@ namespace SimpleLoRaWAN
             receive_message();
             break;
         case RX_TIMEOUT:
+            tr_debug("RX Timeout");
+            break;
         case RX_ERROR:
             tr_debug("Error in reception - Code = %d", event);
             break;
@@ -221,7 +229,30 @@ namespace SimpleLoRaWAN
 }
 
 void Node::send_message(){}
-void Node::receive_message(){}
+void Node::receive_message(){
+  tr_info("****** Received message ******");
+  uint8_t port;
+  int flags;
+
+  uint8_t rx_buffer[255];
+
+  uint16_t retcode = lorawan.receive(rx_buffer, sizeof(rx_buffer), port, flags);
+
+  if (retcode < 0) {
+      printf("\r\n receive() - Error code %d \r\n", retcode);
+      return;
+  }
+
+  printf(" RX Data on port %u (%d bytes): ", port, retcode);
+  for (uint8_t i = 0; i < retcode; i++) {
+      printf("%02x ", rx_buffer[i]);
+  }
+
+  printf("flags: %02X\r\n", flags);
+  printf("\r\n");
+  
+  memset(rx_buffer, 0, sizeof(rx_buffer));
+}
 
 void Node::on_connected(mbed::Callback<void()> cb)           { onConnected = cb; }
 void Node::on_disconnected(mbed::Callback<void()> cb)        { onDisconnected = cb; }
