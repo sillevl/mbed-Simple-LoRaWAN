@@ -53,6 +53,8 @@ private:
 
     bool connected;
 
+    PinName mosi_pullup;
+
     void initialize();
     void connect(lorawan_connect_t &params);
 

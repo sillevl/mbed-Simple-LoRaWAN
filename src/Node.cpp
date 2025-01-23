@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include "mbed-trace/mbed_trace.h"
 #include "pinmap.h"
+#include "PeripheralPins.h"
 #define TRACE_GROUP "SIMPLE-LORAWAN"
 
 using namespace std::literals::chrono_literals;
@@ -40,7 +41,15 @@ namespace SimpleLoRaWAN
   {
     connected = false;
     ev_queue.chain(queue);
+    // hack spi into low power mode
+    mosi_pullup = pins.mosi;
     pin_mode(pins.miso, PullUp);
+
+    // PinMap PinMap_SPI_SCLK
+    const PinMap* map = PinMap_SPI_SCLK;
+    int function = pinmap_find_function(pins.clk, map);
+    // pin_function(pins.clk, function);
+    // pin_function(pins.clk, STM_PIN_DATA(STM_MODE_AF_PP, GPIO_NOPULL, GPIO_AF5_SPI1));
   }
 
   void Node::connect(bool wait_until_connected) {
@@ -156,6 +165,7 @@ namespace SimpleLoRaWAN
 
   void Node::lora_event_handler(lorawan_event_t event)
   {
+    pin_mode(mosi_pullup, PullUp);
     switch (event) {
         case CONNECTED:
             connected = true;
